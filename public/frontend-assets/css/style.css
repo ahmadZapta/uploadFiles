@@ -1,0 +1,54 @@
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.input-container{
+    max-width: 600px;
+    min-height: 150px;
+    background: #f5f6fa;
+    border: 2px dashed #bec8dd;
+    border-radius: 4px;
+    width: 100%;
+    padding: 16px 5px;
+}
+
+.cursor-pointer{
+    cursor: pointer;
+}
+
+.inset-0{
+    inset: 0;
+}
+
+.file-item{
+    position: relative;
+}
+
+.file-item .image{
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgb(189, 188, 188);
+}
+
+.file-item .remove {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: red;
+    color: #FFF;
+    font-size: 20px;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding-bottom: 6px;
+    padding-left: 1px;
+}
+
+.text-gray { color: grey; }
