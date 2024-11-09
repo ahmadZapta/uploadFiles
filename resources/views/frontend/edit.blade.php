@@ -31,7 +31,7 @@
             <div class="d-flex flex-wrap gap-3 mt-3" id="filesContainer">
                 @foreach ($files as $file)
                     <div class="file-item">
-                        <span class="remove remove-exsisting" itemId="{{ $file->id }}">x</span>
+                        <span class="remove remove-exsisting" itemId="{{ $file->id }}" data-listener="false">x</span>
                         <img class="image" src="{{ asset('storage/' . $file->documents) }}">
                     </div>
                 @endforeach
@@ -47,121 +47,144 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
-            let existingFiles = @json($files);
-            let removeExistingFiles = [];
+            const UploadFilesObject = {
 
-            const uploadField = document.getElementById('documents');
-            const filesContainer = document.getElementById('filesContainer');
-            const uploadBtn = document.getElementById('submitButton');
-            const uploadFilesForm = document.getElementById('uploadFilesForm');
-            let removeIcons;
-            let allfiles = [];
+                uploadField: document.getElementById('documents'),
+                existingFiles: @json($files),
+                allfiles: [],
 
-            const removeButtons = document.querySelectorAll(".remove-exsisting");
-            removeButtons.forEach(removeButton => {
-                removeButton.addEventListener("click", function() {
-                    const itemId = removeButton.getAttribute("itemId");
-                    removeExistingFiles.push(itemId);
-                    existingFiles = existingFiles.filter(existingFile => existingFile.id != itemId);
-                    removeButton.parentElement.remove();
+                init() {
+                    this.handleUploadFilesChange();
+                    this.handleRemovingFiles();
+                    this.handleFormSubmit();
+                },
 
-                    const hiddenInput = document.createElement("input");
-                    hiddenInput.type = "hidden";
-                    hiddenInput.name = "remove_existing_files[]";
-                    hiddenInput.value = itemId;
-                    uploadFilesForm.append(hiddenInput);
-                });
-            });
-
-            uploadField.addEventListener("change", function(event) {
-
-                const maxFileSize = parseInt(uploadField.getAttribute("max-filesize"));
-                const maxFilesAllowed = parseInt(uploadField.getAttribute("max-files"));
-                const newFiles = Array.from(event.target.files);
-
-                if (allfiles.length + newFiles.length + existingFiles.length > maxFilesAllowed) {
-                    alert(`You can upload a maximum of ${maxFilesAllowed} files.`);
-                    return;
-                }
-
-                newFiles.forEach((file) => {
-
-                    if (!file.type.startsWith('image/')) {
-                        alert("Only images are allowed");
-                        return;
+                handleUploadFilesChange() {
+                    
+                    function reindexRemoveIcon() {
+                        const updatedRemoveIcons = document.querySelectorAll(".remove");
+                        updatedRemoveIcons.forEach((updatedRemoveIcon, index) => {
+                            updatedRemoveIcon.setAttribute("data-id", index);
+                        });
                     }
 
-                    const fileSizeInMB = file.size / (1024 * 1024);
-                    if (maxFileSize && fileSizeInMB > maxFileSize) {
-                        alert(`File size should not exceed ${maxFileSize} MB`);
-                        return;
-                    }
+                    this.uploadField?.addEventListener("change", function(event) {
+                        const maxFileSize = parseInt(UploadFilesObject.uploadField.getAttribute(
+                            "max-filesize"));
+                        const maxFilesAllowed = parseInt(UploadFilesObject.uploadField.getAttribute(
+                            "max-files"));
+                        const newFiles = Array.from(event.target.files);
 
-                    const fileItem = document.createElement('div');
-                    const image = document.createElement('img');
-                    const removeBtn = document.createElement('span');
-
-                    removeBtn.textContent = "x";
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        image.src = e.target.result;
-                    }
-                    reader.readAsDataURL(file);
-
-                    fileItem.classList.add('file-item');
-                    image.classList.add('image');
-                    removeBtn.classList.add('remove');
-
-                    fileItem.append(removeBtn);
-                    fileItem.append(image);
-                    filesContainer.append(fileItem);
-
-                    removeIcons = document.querySelectorAll('.remove');
-                    removeIcons.forEach((removeIcon, index) => {
-                        removeIcon.setAttribute('data-id', index);
-
-                        if (!removeIcon.hasAttribute('data-listener')) {
-
-                            removeIcon.addEventListener("click", function() {
-
-                                const dataId = Number(this.getAttribute('data-id'));
-                                allfiles = allfiles.filter((file, index) =>
-                                    index !== dataId);
-                                this.parentElement.remove();
-                                reindexRemoveIcon();
-
-                            });
-                            removeIcon.setAttribute('data-listener', 'true');
+                        if (UploadFilesObject.allfiles.length + newFiles.length + UploadFilesObject.existingFiles.length >
+                            maxFilesAllowed) {
+                            alert(`You can upload a maximum of ${maxFilesAllowed} files.`);
+                            return;
                         }
 
+                        newFiles.forEach((file) => {
+
+                            if (!file.type.startsWith('image/')) {
+                                alert("Only images are allowed");
+                                return;
+                            }
+
+                            const fileSizeInMB = file.size / (1024 * 1024);
+                            if (maxFileSize && fileSizeInMB > maxFileSize) {
+                                alert(`File size should not exceed ${maxFileSize} MB`);
+                                return;
+                            }
+
+                            const fileItem = document.createElement('div');
+                            const image = document.createElement('img');
+                            const removeBtn = document.createElement('span');
+
+                            removeBtn.textContent = "x";
+
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                image.src = e.target.result;
+                            }
+                            reader.readAsDataURL(file);
+
+                            fileItem.classList.add('file-item');
+                            image.classList.add('image');
+                            removeBtn.classList.add('remove');
+
+                            fileItem.append(removeBtn);
+                            fileItem.append(image);
+                            filesContainer.append(fileItem);
+
+                            removeIcons = document.querySelectorAll('.remove');
+                            removeIcons.forEach((removeIcon, index) => {
+                                removeIcon.setAttribute('data-id', index);
+
+                                if (!removeIcon.hasAttribute('data-listener')) {
+
+                                    removeIcon.addEventListener("click", function() {
+
+                                        const dataId = Number(this.getAttribute(
+                                            'data-id'));
+                                        UploadFilesObject.allfiles =
+                                            UploadFilesObject.allfiles.filter((
+                                                    file,
+                                                    index) =>
+                                                index !== dataId);
+                                        this.parentElement.remove();
+                                        reindexRemoveIcon();
+
+                                    });
+                                    removeIcon.setAttribute('data-listener', 'true');
+                                }
+
+                            });
+                        });
+
+                        UploadFilesObject.allfiles = UploadFilesObject.allfiles.concat(newFiles.filter(
+                            file => file.size / (1024 * 1024) <=
+                            maxFileSize));
                     });
-                });
+                },
 
-                allfiles = allfiles.concat(newFiles.filter(file => file.size / (1024 * 1024) <=
-                    maxFileSize));
-            });
+                handleRemovingFiles() {
 
-            function reindexRemoveIcon() {
-                const updatedRemoveIcons = document.querySelectorAll(".remove");
-                updatedRemoveIcons.forEach((updatedRemoveIcon, index) => {
-                    updatedRemoveIcon.setAttribute("data-id", index);
-                });
+                    const removeButtons = document.querySelectorAll(".remove-exsisting");
+                    let removeExistingFiles = []
+                    removeButtons?.forEach(removeButton => {
+                        removeButton.addEventListener("click", function() {
+                            const itemId = removeButton.getAttribute("itemId");
+                            removeExistingFiles.push(itemId);
+                            UploadFilesObject.existingFiles = UploadFilesObject.existingFiles.filter(existingFile => existingFile
+                                .id != itemId);
+                            removeButton.parentElement.remove();
+
+                            const hiddenInput = document.createElement("input");
+                            hiddenInput.type = "hidden";
+                            hiddenInput.name = "remove_existing_files[]";
+                            hiddenInput.value = itemId;
+                            uploadFilesForm.append(hiddenInput);
+                        });
+                    });
+                },
+
+                handleFormSubmit() {
+                    const uploadBtn = document.getElementById('submitButton');
+                    uploadBtn?.addEventListener("click", function(e) {
+                        const uploadFilesForm = document.getElementById('uploadFilesForm');
+                        e.preventDefault();
+                        const dataTransfer = new DataTransfer();
+                        UploadFilesObject.allfiles.forEach(file => {
+                            dataTransfer.items.add(file);
+                        });
+
+                        UploadFilesObject.uploadField.files = dataTransfer.files;
+                        uploadFilesForm.submit();
+                    })
+                },
             }
 
-            uploadBtn.addEventListener("click", function(e) {
-                e.preventDefault();
-                const dataTransfer = new DataTransfer();
-                allfiles.forEach(file => {
-                    dataTransfer.items.add(file);
-                });
-
-                uploadField.files = dataTransfer.files;
-                uploadFilesForm.submit();
-            })
+            UploadFilesObject.init();
 
         });
     </script>
 </body>
-
 </html>

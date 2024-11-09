@@ -11,6 +11,7 @@ class TempController extends Controller
     public function create(Request $request)
     {
 
+        dd($request->all());
 
         $imagePaths = [];
         foreach ($request->file('documents') as $file) {
